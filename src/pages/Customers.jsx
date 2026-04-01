@@ -6,6 +6,11 @@ import { toast } from 'react-toastify';
 const Customers = ({ token }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredUsers = users.filter(user => 
+        user.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const fetchUsers = async () => {
         try {
@@ -51,8 +56,22 @@ const Customers = ({ token }) => {
                     <h1 className='text-3xl sm:text-4xl font-black text-gray-800 dark:text-white mb-2 leading-tight tracking-tight'>Customers</h1>
                     <p className='text-[10px] sm:text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] px-1'>View all registered users</p>
                 </div>
-                <div className='bg-indigo-600 dark:bg-indigo-600 px-6 py-2.5 rounded-2xl shadow-2xl shadow-indigo-600/20 w-fit'>
-                    <p className='text-[10px] font-black text-white uppercase tracking-[0.2em]'>Total: {users.length} Users</p>
+                <div className='flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto'>
+                    <div className="relative w-full sm:w-64">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by customer name..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-90 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors shadow-sm dark:text-white placeholder-gray-400 font-bold"
+                        />
+                    </div>
+                    <div className='bg-indigo-600 dark:bg-indigo-600 px-6 py-2.5 rounded-2xl shadow-2xl shadow-indigo-600/20 w-full sm:w-fit whitespace-nowrap shrink-0 text-center sm:text-left'>
+                        <p className='text-[10px] font-black text-white uppercase tracking-[0.2em]'>Total: {filteredUsers.length} Users</p>
+                    </div>
                 </div>
             </div>
 
@@ -75,7 +94,7 @@ const Customers = ({ token }) => {
                                 </tr>
                             </thead>
                             <tbody className='divide-y divide-white/10 dark:divide-gray-800/50'>
-                                {users.map((user, index) => (
+                                {filteredUsers.map((user, index) => (
                                     <tr key={user._id} className='group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-300'>
                                         <td className='px-8 py-6'>
                                             <div className='flex items-center gap-4'>
@@ -120,7 +139,7 @@ const Customers = ({ token }) => {
                                                     : 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-400 dark:border-emerald-800'
                                             }`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${user.isBlocked ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`}></span>
-                                                {user.isBlocked ? 'Inhibited' : 'Verified'}
+                                                {user.isBlocked ? 'Deactive' : 'Verified'}
                                             </span>
                                         </td>
                                         <td className='px-8 py-6 text-right'>
@@ -132,12 +151,12 @@ const Customers = ({ token }) => {
                                                         : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white dark:bg-rose-900/10 dark:border-rose-800 hover:-translate-y-0.5'
                                                 }`}
                                             >
-                                                {user.isBlocked ? 'Restore Access' : 'Limit Access'}
+                                                {user.isBlocked ? 'Active' : 'Deactive'}
                                             </button>
                                         </td>
                                     </tr>
                                 ))}
-                                {users.length === 0 && (
+                                {filteredUsers.length === 0 && (
                                     <tr>
                                         <td colSpan="5" className="px-6 py-20 text-center">
                                             <div className='flex flex-col items-center gap-3'>
@@ -154,7 +173,7 @@ const Customers = ({ token }) => {
 
                         {/* Mobile Optimized Cards */}
                         <div className='md:hidden flex flex-col divide-y divide-white/10'>
-                            {users.map((user) => (
+                            {filteredUsers.map((user) => (
                                 <div key={user._id} className='p-6 hover:bg-indigo-50/10 dark:hover:bg-indigo-900/10 transition-colors'>
                                     <div className='flex items-center gap-4 mb-5'>
                                         <div className='w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-sm font-black text-indigo-600 dark:text-indigo-400 border border-white dark:border-indigo-800 shadow-lg shrink-0'>
@@ -171,7 +190,7 @@ const Customers = ({ token }) => {
                                                     : 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/20'
                                             }`}>
                                                 <span className={`w-1 h-1 rounded-full ${user.isBlocked ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`}></span>
-                                                {user.isBlocked ? 'Inhibited' : 'Active'}
+                                                {user.isBlocked ? 'Deactive' : 'Active'}
                                             </span>
                                         </div>
                                     </div>
@@ -207,7 +226,7 @@ const Customers = ({ token }) => {
                                                     : 'bg-rose-50 text-rose-600 border border-rose-200'
                                             }`}
                                         >
-                                            {user.isBlocked ? 'Restore Account' : 'Inhibit Access'}
+                                            {user.isBlocked ? 'Active' : 'Deactive'}
                                         </button>
                                     </div>
                                 </div>
