@@ -180,15 +180,20 @@ const Orders = ({ token }) => {
                         </span>
                       ))}
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4 sm:mt-1">
-                      <button onClick={() => setSelectedOrder(order)} className='inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95'>
-                        Review Order
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                      </button>
-                      <p className='text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center justify-center sm:justify-start gap-2'>
-                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-                      ID: {order._id?.slice(-8).toUpperCase()}
+                    <div className="flex flex-col gap-3 mt-3">
+                      <p className='text-[10px] sm:text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest flex items-center justify-center sm:justify-start gap-2'>
+                        ORDER ID: {order._id?.toUpperCase()}
                       </p>
+                      <div className="flex items-center justify-center sm:justify-start gap-4">
+                        <button onClick={() => setSelectedOrder(order)} className='inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 w-fit'>
+                          Review Order
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                        <p className='text-[11px] font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5'>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            {new Date(order.date).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

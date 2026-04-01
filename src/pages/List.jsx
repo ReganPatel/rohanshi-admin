@@ -20,6 +20,7 @@ const List = ({ token }) => {
     const [hasSizes, setHasSizes] = useState(false);
     const [hasColors, setHasColors] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
 
     // Filter State
     const [search, setSearch] = useState('');
@@ -383,11 +384,11 @@ const List = ({ token }) => {
                                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                 Edit
                                             </button>
-                                            <button onClick={() => removeProduct(item._id)} className='text-gray-400 hover:text-red-500 transition-all flex items-center gap-1 text-[11px] font-black uppercase tracking-widest' title="Delete Product">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <button onClick={() => setProductToDelete(item)} className='text-[11px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center gap-1' title="Delete Product">
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
-                                                <span className="sm:hidden">Delete</span>
+                                                Delete
                                             </button>
                                         </div>
                                     </div>
@@ -669,6 +670,42 @@ const List = ({ token }) => {
                     </div>
                 </div>
             </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {productToDelete && (
+                <div className='fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md bg-black/40'>
+                    <div className='bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 relative border border-white/20 dark:border-gray-800 animate-in fade-in zoom-in-95 duration-200'>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-5">
+                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Delete Product?</h3>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                                Are you sure you want to delete <br/><span className="font-bold text-gray-800 dark:text-gray-200">"{productToDelete.name}"</span>? <br/>This action cannot be undone.
+                            </p>
+                            <div className="flex items-center gap-3 w-full">
+                                <button 
+                                    onClick={() => setProductToDelete(null)}
+                                    className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={async () => {
+                                        await removeProduct(productToDelete._id);
+                                        setProductToDelete(null);
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors shadow-lg shadow-red-500/20 active:scale-95"
+                                >
+                                    Yes, Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     )
