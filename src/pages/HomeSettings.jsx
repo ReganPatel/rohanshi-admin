@@ -3,17 +3,21 @@ import axios from 'axios'
 import { backendUrl, currency } from '../App'
 import { toast } from 'react-toastify'
 import { assets } from '../assets/assets'
+import imageCompression from 'browser-image-compression'
 
 const HomeSettings = ({ token }) => {
     const [products, setProducts] = useState([])
     const [latestProducts, setLatestProducts] = useState([])
     const [bestsellerProducts, setBestsellerProducts] = useState([])
-    const [existingHeroImages, setExistingHeroImages] = useState([])
-    const [newHeroImages, setNewHeroImages] = useState([])
+    
+    // Unified Hero Images array to allow seamless re-ordering
+    const [heroImages, setHeroImages] = useState([])
+
     const [facebookLink, setFacebookLink] = useState('')
     const [instagramLink, setInstagramLink] = useState('')
     const [contactEmail, setContactEmail] = useState('')
     const [contactPhone, setContactPhone] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
 
     const fetchConfig = async () => {
         try {
@@ -22,7 +26,14 @@ const HomeSettings = ({ token }) => {
                 const config = response.data.config
                 setLatestProducts(config.latestProducts || [])
                 setBestsellerProducts(config.bestsellerProducts || [])
-                setExistingHeroImages(config.heroImages || [])
+                
+                // Load arrays of product IDs
+                if (config.heroImages) {
+                    setHeroImages(config.heroImages.map(url => ({ type: 'existing', url })))
+                } else {
+                    setHeroImages([])
+                }
+                
                 setFacebookLink(config.facebookLink || '')
                 setInstagramLink(config.instagramLink || '')
                 setContactEmail(config.contactEmail || '')
@@ -71,24 +82,29 @@ const HomeSettings = ({ token }) => {
         }
     }
 
-    const removeExistingImage = (indexToRemove) => {
-        setExistingHeroImages(existingHeroImages.filter((_, index) => index !== indexToRemove))
-    }
-
-    const removeNewImage = (indexToRemove) => {
-        setNewHeroImages(Array.from(newHeroImages).filter((_, index) => index !== indexToRemove))
-    }
-
     const handleImageChange = (e) => {
         const selectedFiles = Array.from(e.target.files)
-
         // Let's cap total combined images to 10
-        if (existingHeroImages.length + newHeroImages.length + selectedFiles.length > 10) {
+        if (heroImages.length + selectedFiles.length > 10) {
             toast.error("You can only have up to 10 hero images maximum.")
             return
         }
+        
+        const newImages = selectedFiles.map(file => ({ type: 'new', file }))
+        setHeroImages([...heroImages, ...newImages])
+    }
 
-        setNewHeroImages([...newHeroImages, ...selectedFiles])
+    const moveImage = (index, direction) => {
+        const newImages = [...heroImages]
+        const targetIndex = index + direction
+        if (targetIndex < 0 || targetIndex >= newImages.length) return
+        
+        // Swap
+        const temp = newImages[targetIndex]
+        newImages[targetIndex] = newImages[index]
+        newImages[index] = temp
+        
+        setHeroImages(newImages)
     }
 
 
@@ -105,22 +121,57 @@ const HomeSettings = ({ token }) => {
             formData.append('contactEmail', contactEmail)
             formData.append('contactPhone', contactPhone)
 
-            // Append each existing image URL (if none, it won't append)
-            existingHeroImages.forEach(imgUrl => {
-                formData.append('existingHeroImages', imgUrl)
-            })
+            let existingIdx = 0;
+            let newIdx = 0;
+            const heroImagesOrder = []
 
-            // Append each new file
-            newHeroImages.forEach(file => {
-                formData.append('newHeroImages', file)
-            })
+            for (const img of heroImages) {
+                if (img.type === 'existing') {
+                    formData.append('existingHeroImages', img.url)
+                    heroImagesOrder.push({ type: 'existing', index: existingIdx })
+                    existingIdx++
+                } else if (img.type === 'new') {
+                    heroImagesOrder.push({ type: 'new', index: newIdx })
+                    newIdx++
+                }
+            }
+
+            formData.append('heroImagesOrder', JSON.stringify(heroImagesOrder))
+
+            // Append each new file (compress it first)
+            setIsSaving(true)
+
+            const filesToCompress = heroImages.filter(img => img.type === 'new').map(img => img.file)
+
+            try {
+                const compressedFiles = await Promise.all(
+                    filesToCompress.map(file => {
+                        return imageCompression(file, {
+                            maxSizeMB: 1.5, // Upped to 1.5MB for Ultra-HD Crisp Quality
+                            maxWidthOrHeight: 2560,
+                            useWebWorker: false, // Prevents identical result bugs in fast loops on some webkit browsers
+                        }).then(compressedBlob => {
+                            // Ensure proper explicit File object mapping so FormData transmits different named parts
+                            return new File([compressedBlob], file.name, { type: file.type })
+                        }).catch(error => {
+                            console.log("Compression error for file", file.name, error)
+                            return file // fallback to original
+                        })
+                    })
+                )
+
+                for (const compressedFile of compressedFiles) {
+                    formData.append('newHeroImages', compressedFile, compressedFile.name)
+                }
+            } catch(e) {
+                console.error(e)
+            }
 
             const response = await axios.post(backendUrl + '/api/siteConfig', formData, { headers: { token } })
 
             if (response.data.success) {
                 toast.success(response.data.message)
                 fetchConfig() // Refresh state
-                setNewHeroImages([]) // Clear out new pending uploads
             } else {
                 toast.error(response.data.message)
             }
@@ -128,6 +179,8 @@ const HomeSettings = ({ token }) => {
         } catch (error) {
             console.log(error)
             toast.error(error.message)
+        } finally {
+            setIsSaving(false)
         }
     }
 
@@ -143,56 +196,62 @@ const HomeSettings = ({ token }) => {
                         <div>
                             <h2 className='text-xl sm:text-2xl font-black text-gray-800 dark:text-white'>Hero Banners</h2>
                             <p className='text-[10px] sm:text-xs text-gray-500 font-black uppercase tracking-widest mt-1'>Update homepage slider images</p>
+                            <p className='text-[10px] text-amber-500 font-bold mt-2'>* Tip: Upload max 2-3 images at a time to retain maximum Ultra-HD quality without Network Errors.</p>
                         </div>
                         <span className='px-6 py-2 bg-indigo-600 shadow-2xl shadow-indigo-600/20 text-white rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase border border-white/10 w-fit'>
-                            {existingHeroImages.length + newHeroImages.length} / 10 Images
+                            {heroImages.length} / 10 Images
                         </span>
                     </div>
 
-                    <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6'>
-                        {/* Render Existing Images */}
-                        {existingHeroImages.map((imgUrl, index) => (
-                            <div key={index} className='relative group aspect-square'>
-                                <div className='w-full h-full rounded-[1.5rem] overflow-hidden border-2 border-white/10 group-hover:border-indigo-500 transition-all shadow-xl'>
-                                    <img className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' src={imgUrl} alt="Hero" />
+                    <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
+                        {/* Unified Image Render with Swap capability */}
+                        {heroImages.map((img, index) => (
+                            <div key={'hero-' + index} className='relative group aspect-[9/16]'>
+                                <div className={`w-full h-full rounded-[1.5rem] overflow-hidden border-2 ${img.type === 'new' ? 'border-indigo-500/50' : 'border-gray-200 dark:border-gray-800'} shadow-sm relative group-hover:border-indigo-500/50 transition-all`}>
+                                    <img className='w-full h-full object-cover' src={img.type === 'existing' ? img.url : URL.createObjectURL(img.file)} alt="Hero" />
+                                    {img.type === 'new' && (
+                                        <div className='absolute inset-0 bg-indigo-600/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all'>
+                                            <span className='text-[10px] font-black text-white uppercase tracking-[0.2em] bg-indigo-600 px-3 py-1 rounded-xl shadow-lg'>Pending</span>
+                                        </div>
+                                    )}
+                                    {/* Delete Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setHeroImages(heroImages.filter((_, i) => i !== index))}
+                                        className='absolute -top-2 -right-2 bg-rose-600 text-white rounded-xl w-8 h-8 flex items-center justify-center text-lg font-black transition-all shadow-2xl opacity-0 group-hover:opacity-100 transform hover:scale-110'
+                                    >
+                                        &times;
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeExistingImage(index)}
-                                    className='absolute -top-2 -right-2 bg-rose-600 text-white rounded-xl w-8 h-8 flex items-center justify-center text-lg font-black shadow-2xl opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110 active:scale-95'
-                                >
-                                    &times;
-                                </button>
+                                <div className='absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all z-20 bg-black/60 backdrop-blur-md rounded-2xl px-2 py-1 shadow-2xl border border-white/10'>
+                                    <button 
+                                        type="button" 
+                                        onClick={(e) => { e.preventDefault(); moveImage(index, -1); }} 
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-white transition-all ${index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/20'}`}
+                                        disabled={index === 0}
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                    <span className="text-[10px] text-white font-black w-4 text-center">{index + 1}</span>
+                                    <button 
+                                        type="button" 
+                                        onClick={(e) => { e.preventDefault(); moveImage(index, 1); }} 
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-white transition-all ${index === heroImages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/20'}`}
+                                        disabled={index === heroImages.length - 1}
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         ))}
 
-                        {/* Render Pending New Images */}
-                        {newHeroImages.map((file, index) => (
-                            <div key={'new-' + index} className='relative group aspect-square'>
-                                <div className='w-full h-full rounded-[1.5rem] overflow-hidden border-2 border-indigo-500/50 shadow-xl relative'>
-                                    <img className='w-full h-full object-cover' src={URL.createObjectURL(file)} alt="New Hero" />
-                                    <div className='absolute inset-0 bg-indigo-600/40 backdrop-blur-[2px] flex items-center justify-center'>
-                                        <span className='text-[10px] font-black text-white uppercase tracking-[0.2em] bg-indigo-600 px-3 py-1 rounded-xl shadow-lg'>Draft</span>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeNewImage(index)}
-                                    className='absolute -top-2 -right-2 bg-rose-600 text-white rounded-xl w-8 h-8 flex items-center justify-center text-lg font-black shadow-2xl transform hover:scale-110 active:scale-95'
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                        ))}
-
-                        {/* Modern Upload Button */}
-                        {(existingHeroImages.length + newHeroImages.length < 10) && (
-                            <label htmlFor="image" className='cursor-pointer group aspect-square'>
+                        {heroImages.length < 10 && (
+                            <label htmlFor="image" className='cursor-pointer group aspect-[9/16]'>
                                 <div className='w-full h-full rounded-[1.5rem] border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center bg-gray-50/30 dark:bg-gray-900/40 hover:bg-white dark:hover:bg-gray-800 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500'>
-                                    <div className='w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all'>
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    <div className='w-10 h-10 rounded-2xl bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all'>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                     </div>
-                                    <span className='text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-indigo-600'>Insert Media</span>
+                                    <span className='text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-indigo-600'>Upload</span>
                                 </div>
                                 <input type="file" id="image" hidden multiple onChange={handleImageChange} accept="image/*" />
                             </label>
@@ -316,8 +375,8 @@ const HomeSettings = ({ token }) => {
                 </div>
 
                 <div className='flex justify-center sm:justify-end mt-16 scale-110 sm:scale-100'>
-                    <button type="submit" className='w-full sm:w-auto px-16 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] shadow-2xl shadow-indigo-600/40 transform hover:-translate-y-1.5 active:scale-95 transition-all text-xs border border-white/10'>
-                        Save Changes
+                    <button disabled={isSaving} type="submit" className={`w-full sm:w-auto px-16 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] shadow-2xl shadow-indigo-600/40 transform ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-1.5 active:scale-95'} transition-all text-xs border border-white/10`}>
+                        {isSaving ? 'Processing & Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </div>
