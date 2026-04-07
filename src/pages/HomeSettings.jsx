@@ -199,7 +199,7 @@ const HomeSettings = ({ token }) => {
                         )}
                     </div>
                 </div>
-                
+
                 {/* Contact & Social media Section */}
                 <div className='glass-effect p-8 sm:p-10 rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-2xl mb-10 relative overflow-hidden'>
                     <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 blur-3xl -mr-24 -mt-24"></div>
@@ -211,9 +211,9 @@ const HomeSettings = ({ token }) => {
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                         <div>
                             <p className='text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em] mb-3 px-1'>Instagram URL</p>
-                            <input 
-                                type="text" 
-                                value={instagramLink} 
+                            <input
+                                type="text"
+                                value={instagramLink}
                                 onChange={(e) => setInstagramLink(e.target.value)}
                                 placeholder="https://instagram.com/yourbrand"
                                 className='w-full px-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-800 rounded-2xl dark:text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold shadow-sm'
@@ -221,9 +221,9 @@ const HomeSettings = ({ token }) => {
                         </div>
                         <div>
                             <p className='text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em] mb-3 px-1'>Facebook URL</p>
-                            <input 
-                                type="text" 
-                                value={facebookLink} 
+                            <input
+                                type="text"
+                                value={facebookLink}
                                 onChange={(e) => setFacebookLink(e.target.value)}
                                 placeholder="https://facebook.com/yourbrand"
                                 className='w-full px-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-800 rounded-2xl dark:text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold shadow-sm'
@@ -231,9 +231,9 @@ const HomeSettings = ({ token }) => {
                         </div>
                         <div>
                             <p className='text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em] mb-3 px-1'>Support Email</p>
-                            <input 
-                                type="email" 
-                                value={contactEmail} 
+                            <input
+                                type="email"
+                                value={contactEmail}
                                 onChange={(e) => setContactEmail(e.target.value)}
                                 placeholder="support@yourbrand.com"
                                 className='w-full px-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-800 rounded-2xl dark:text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold shadow-sm'
@@ -241,9 +241,9 @@ const HomeSettings = ({ token }) => {
                         </div>
                         <div>
                             <p className='text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em] mb-3 px-1'>Support Phone</p>
-                            <input 
-                                type="text" 
-                                value={contactPhone} 
+                            <input
+                                type="text"
+                                value={contactPhone}
                                 onChange={(e) => setContactPhone(e.target.value)}
                                 placeholder="+91 12345 67890"
                                 className='w-full px-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-800 rounded-2xl dark:text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold shadow-sm'
@@ -259,11 +259,11 @@ const HomeSettings = ({ token }) => {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl -mr-16 -mt-16"></div>
                         <h3 className='text-xl font-black text-gray-800 dark:text-white mb-1 px-1'>New Arrivals</h3>
                         <p className='text-[10px] text-gray-400 font-black uppercase tracking-widest mb-8 px-1'>Highlight your latest drops</p>
-                        
+
                         <div className='h-[450px] overflow-y-auto pr-3 custom-scrollbar flex flex-col gap-4'>
                             {products.map(product => (
-                                <label key={product._id} className={`flex items-center gap-5 p-4 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${latestProducts.includes(product._id) ? 'bg-indigo-600 border-indigo-600 shadow-2xl shadow-indigo-600/30' : 'bg-white/50 border-white/20 dark:bg-gray-900/30 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm'}`}>
-                                    <div className="relative z-10">
+                                <label key={product._id} className={`flex shrink-0 items-center gap-5 p-4 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${latestProducts.includes(product._id) ? 'bg-indigo-600 border-indigo-600 shadow-2xl shadow-indigo-600/30' : 'bg-white/50 border-white/20 dark:bg-gray-900/30 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm'}`}>
+                                    <div className="relative z-10 shrink-0">
                                         <input
                                             type="checkbox"
                                             className='hidden'
@@ -274,7 +274,7 @@ const HomeSettings = ({ token }) => {
                                             {latestProducts.includes(product._id) && <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}
                                         </div>
                                     </div>
-                                    <img className='w-16 h-16 object-cover rounded-2xl shadow-xl border-2 border-white/10 group-hover:scale-105 transition-transform relative z-10' src={product.image[0]} alt={product.name} />
+                                    <img className='w-16 h-16 shrink-0 object-cover rounded-2xl shadow-xl border-2 border-white/10 group-hover:scale-105 transition-transform relative z-10' src={product.image[0]} alt={product.name} />
                                     <div className="flex-1 min-w-0 relative z-10">
                                         <p className={`text-sm font-black line-clamp-2 uppercase tracking-tight leading-tight ${latestProducts.includes(product._id) ? 'text-white' : 'text-gray-800 dark:text-white'}`}>{product.name}</p>
                                         <p className={`text-[10px] font-black uppercase mt-1.5 opacity-80 ${latestProducts.includes(product._id) ? 'text-indigo-100' : 'text-gray-400'}`}>{product.category} • {currency}{product.price.toLocaleString()}</p>
@@ -289,11 +289,11 @@ const HomeSettings = ({ token }) => {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 blur-3xl -mr-16 -mt-16"></div>
                         <h3 className='text-xl font-black text-gray-800 dark:text-white mb-1 px-1'>Bestsellers</h3>
                         <p className='text-[10px] text-gray-400 font-black uppercase tracking-widest mb-8 px-1'>Display customer favorites</p>
-                        
+
                         <div className='h-[450px] overflow-y-auto pr-3 custom-scrollbar flex flex-col gap-4'>
                             {products.map(product => (
-                                <label key={product._id} className={`flex items-center gap-5 p-4 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${bestsellerProducts.includes(product._id) ? 'bg-rose-600 border-rose-600 shadow-2xl shadow-rose-600/30' : 'bg-white/50 border-white/20 dark:bg-gray-900/30 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm'}`}>
-                                    <div className="relative z-10">
+                                <label key={product._id} className={`flex shrink-0 items-center gap-5 p-4 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${bestsellerProducts.includes(product._id) ? 'bg-rose-600 border-rose-600 shadow-2xl shadow-rose-600/30' : 'bg-white/50 border-white/20 dark:bg-gray-900/30 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm'}`}>
+                                    <div className="relative z-10 shrink-0">
                                         <input
                                             type="checkbox"
                                             className='hidden'
@@ -304,7 +304,7 @@ const HomeSettings = ({ token }) => {
                                             {bestsellerProducts.includes(product._id) && <svg className="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}
                                         </div>
                                     </div>
-                                    <img className='w-16 h-16 object-cover rounded-2xl shadow-xl border-2 border-white/10 group-hover:scale-105 transition-transform relative z-10' src={product.image[0]} alt={product.name} />
+                                    <img className='w-16 h-16 shrink-0 object-cover rounded-2xl shadow-xl border-2 border-white/10 group-hover:scale-105 transition-transform relative z-10' src={product.image[0]} alt={product.name} />
                                     <div className="flex-1 min-w-0 relative z-10">
                                         <p className={`text-sm font-black line-clamp-2 uppercase tracking-tight leading-tight ${bestsellerProducts.includes(product._id) ? 'text-white' : 'text-gray-800 dark:text-white'}`}>{product.name}</p>
                                         <p className={`text-[10px] font-black uppercase mt-1.5 opacity-80 ${bestsellerProducts.includes(product._id) ? 'text-rose-100' : 'text-gray-400'}`}>{product.category} • {currency}{product.price.toLocaleString()}</p>
